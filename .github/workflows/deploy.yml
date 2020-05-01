@@ -1,0 +1,28 @@
+name: Image Deploy
+
+on: 
+  push:
+    branches:
+      - master
+
+jobs:
+  publish_and_deploy:
+    name: Publish and Deploy Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Login Docker Hub
+        run: make dockerhub-login
+        env: 
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Retrieve and build Image
+        run: make docker-pull && make docker-build
+      - name: Publish Image
+        run: make docker-push && make docker-publish
+      - name: Create Release
+        run: make release
+        env:
+          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_SHA: ${{ github.GITHUB_SHA }}
