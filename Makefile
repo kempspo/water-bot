@@ -1,3 +1,8 @@
+NAME = water_bot
+REPO = kempspo/docker
+SUBREPO = discord-$(NAME)
+VER = v0.1.0
+
 .PHONY: clean clean-test clean-pyc clean-build docs help
 .DEFAULT_GOAL := help
 
@@ -73,8 +78,6 @@ docs: ## generate Sphinx HTML documentation, including API docs
 servedocs: docs ## compile the docs watching for changes
 	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
 
-release: dist ## package and upload a release
-	twine upload dist/*
 
 dist: clean ## builds source and wheel package
 	python setup.py sdist
@@ -83,3 +86,24 @@ dist: clean ## builds source and wheel package
 
 install: clean ## install the package to the active Python's site-packages
 	python setup.py install
+
+docker-build:
+	docker build -t $(REPO):$(SUBREPO) .
+
+docker-run:
+	docker-run --rm --name $(NAME) $(ENV_VARS) $(REPO):$(SUBREPO)
+
+docker-bash:
+	docker run -it --rm --name $(NAME) $(ENV_VARS) $(REPO):$(SUBREPO) bash
+
+docker-push:
+	docker tag $(REPO):$(SUBREPO) $(REPO):$(SUBREPO)-$(VER) && \
+	docker push $(REPO):$(SUBREPO)-$(VER)
+
+release:
+	docker run -t --rm \
+		-e GITHUB_PAT \
+		-e GITHUB_SHA \
+		-e GITHUB_ACTIONS \
+		$(REPO):$(SUBREPO) \
+		python scripts/github_release.py
