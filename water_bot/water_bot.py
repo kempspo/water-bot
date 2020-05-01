@@ -4,7 +4,7 @@ import discord
 import asyncio
 
 
-class water_bot(discord.Client):
+class client(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -16,10 +16,9 @@ class water_bot(discord.Client):
         print(self.user.id)
         print('------')
 
-    def check_time(self):
+    async def check_time(self):
         current_time = datetime.now()
-
-        if (current_time.hour > 9 and current_time.hour < 12):
+        if (current_time.hour >= 9 and current_time.hour <= 24):
             if (current_time.minute % 30 == 0):
                 return True
 
@@ -27,12 +26,11 @@ class water_bot(discord.Client):
         await self.wait_until_ready()
         channel = self.get_channel(705490952135114816)
         while not self.is_closed():
-            if (self.check_time() == True):
+            if (await self.check_time() == True):
                 await channel.send('Drink Water')
                 await asyncio.sleep(60)
 
-
 if __name__ == "__main__":
     token = os.getenv('WATER_BOT_TOKEN')
-    client = water_bot()
+    client = client()
     client.run(token)
